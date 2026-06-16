@@ -1,39 +1,41 @@
-# Rippled (node)
+# XRPLD (node)
 
-This container allows you to run a `rippled` node. No config required.
+This container allows you to run an `xrpld` (formerly: `rippled`) node. No config required.
 
 The server will keep a history of **only 256 ledgers**. You can change this value in the config (more about the config in this readme).
 
 The container is configured to serve a public http websocket at port `80` and the local _rpc admin service_ in the container at port `5005`.
 Other ports (443, 6006, 51235) can be mapped but should be enabled in the config first.
 
-This container is running on `ubuntu:latest`.
+This container is running on `ubuntu:noble`.
 
 
 ## How to run
 
 ### From Github
 
-If you downloaded / cloned the [Github repo](https://github.com/WietseWind/docker-rippled) you got yourself a few scripts to get started. In the `./go` folder, the following scripts are available, run:
+If you downloaded / cloned the [Github repo](https://github.com/WietseWind/docker-xrpld) you got yourself a few scripts to get started. In the `./go` folder, the following scripts are available, run:
 
-- `go/build` to build the container image (tag: `rippled`)
-- `go/up` to create a new container named `rippled` and setup the port and persistent config (*1)
-- `go/down` to stop and remove the container `rippled`
+- `go/build` to build the container image (tag: `xrpld`)
+- `go/up` to create a new container named `xrpld` and setup the port and persistent config (*1)
+- `go/down` to stop and remove the container `xrpld`
 
-The `go/up` command will mount the subfolder (in the cloned repo folder) `config` to the container; the `rippled.cfg` config and `validators.txt` will be loaded from this folder when `rippled` starts. If you stop/start or restart the container, the container will pickup your changes.
+The `go/up` command will mount the subfolder (in the cloned repo folder) `config` to the container; the `xrpld.cfg` config and `validators.txt` will be loaded from this folder when `xrpld` starts. If you stop/start or restart the container, the container will pickup your changes.
 
-When starting the container the `go/up` script will map port `80` on your host to port `80` in the container. This is where `rippled` is configured to serve a websocket. If you want to run the websocket on another TCP port, you can enter the port after the `go/up` command, eg.:
+> **Legacy config name:** if no `xrpld.cfg` is present but a (formerly named) `rippled.cfg` is found in the config folder, that file will be used instead. See [Config file](#config-file) below.
+
+When starting the container the `go/up` script will map port `80` on your host to port `80` in the container. This is where `xrpld` is configured to serve a websocket. If you want to run the websocket on another TCP port, you can enter the port after the `go/up` command, eg.:
 
 ```
 go/up 8080
 ```
 
-After spinning the container up, you will see the rippled log. You should see a lot of information show up within a few seconds. If you want to stop watching the log, press CTRL - C. The container will keep on running in the background.
+After spinning the container up, you will see the xrpld log. You should see a lot of information show up within a few seconds. If you want to stop watching the log, press CTRL - C. The container will keep on running in the background.
 
 If you want to build the image manually, use (you can change the tag):
 
 ```
-docker build --tag rippled:latest .
+docker build --tag xrpld:latest .
 ```
 
 ### From the Docker Hub
@@ -42,13 +44,13 @@ Use the image `xrpllabsofficial/xrpld`.
 
 **Because you only retrieved the container image from the Docker Hub, you have to manually create a container based on the image.** When creating the container, please make sure you open port `80`.
 
-If you run the container with a mapping to `/config/` (in the container) containing a `rippled.cfg` and `validators.txt` file, these will be used. If the mapping or these files aren't present, `rippled` will start with the default config.
+If you run the container with a mapping to `/config/` (in the container) containing a `xrpld.cfg` and `validators.txt` file, these will be used. If the mapping or these files aren't present, `xrpld` will start with the default config. See [Config file](#config-file) below for how the legacy `rippled.cfg` name is handled.
 
-This command launches your `rippled` container and the rippled websocket at port `80`:
+This command launches your `xrpld` container and the xrpld websocket at port `80`:
 
 ```
 docker run -dit \
-    --name rippled \
+    --name xrpld \
     -p 80:80 \
     -v /my/local/disk/xrpld-config/:/config/ \
     xrpllabsofficial/xrpld:latest
@@ -56,7 +58,7 @@ docker run -dit \
 
 You can change the `--name` and **make sure you specify a valid local full path for your volume source, instead of `/my/local/disk/xrpld-config/`**.
 
-You can fetch a working sample config from the [Github repo](https://github.com/WietseWind/docker-rippled).
+You can fetch a working sample config from the [Github repo](https://github.com/WietseWind/docker-xrpld).
 
 ### Note on Apple M1 / M2 chips:
 
@@ -69,48 +71,61 @@ Both environment variables passed with `-e` to `docker run` and arguments added 
 ```bash
 docker run \
   -e TESTVAR=123123 \
-  -it --name rippled -p $PORT:80 \
+  -it --name xrpld -p $PORT:80 \
   -v $(pwd)/../config:/config/ \
   xrpllabsofficial/xrpld:latest \
   -a \
   --start
 ```
 
-... will pass the environment variable `TESTVAR` with value, and the arguments `-aaa` and `-c` to `rippled`.
+... will pass the environment variable `TESTVAR` with value, and the arguments `-aaa` and `-c` to `xrpld`.
 
 Alternatively, if you can't pass direct arguments, you can pass a string of arguments as an environment variable called `ENV_ARGS`, like this:
 
 ```bash
 docker run \
   -e ENV_ARGS="-a --start" \
-  -it --name rippled -p $PORT:80 \
+  -it --name xrpld -p $PORT:80 \
   -v $(pwd)/../config:/config/ \
   xrpllabsofficial/xrpld:latest
 ```
 
+## Config file
+
+On startup the entrypoint looks in the mounted `/config/` folder and picks the config to run with in this order:
+
+1. **`/config/xrpld.cfg`** — if present (and not empty), this is used.
+2. **`/config/rippled.cfg`** — the legacy name. Only used as a fallback **when no `xrpld.cfg` is found**. This keeps older setups (from when the node was called `rippled`) working without renaming anything.
+
+If neither file is present, `xrpld` starts with the default config baked into the image.
+
+Whichever file is selected is copied to `/etc/xrpld/xrpld.cfg` inside the container and `xrpld` is started against it — so `xrpld.cfg` always wins if both files happen to exist. To migrate, simply rename your `rippled.cfg` to `xrpld.cfg`; no other change is needed.
+
+The same `/config/` folder is also checked for a `validators.txt`, which is used when present.
+
 ## So it's running
 
-If you want to check the rippled-logs (container stdout, press CTRL - C to stop watching):
+If you want to check the xrpld-logs (container stdout, press CTRL - C to stop watching):
 
 ```
-docker logs -f rippled
+docker logs -f xrpld
 ```
 
-If you want to check the rippled server status:
+If you want to check the xrpld server status:
 
 ```
-docker exec rippled rippled server_info
+docker exec xrpld xrpld server_info
 ```
 
 Check the value of `complete_ledgers` in the server info to see if the server
 has complete ledgers with transactions. When you launch the container it may take
 a few minutes for the server to sync.
 
-If you started the container manually, you may have to change the name of the container (`rippled`) to the name you entered in your `docker run` command.
+If you started the container manually, you may have to change the name of the container (`xrpld`) to the name you entered in your `docker run` command.
 
 ## Connecting
 
-You can now connect to the `rippled` websocket using a client like [xrpl.js](https://github.com/XRPLF/xrpl.js/tree/main).
+You can now connect to the `xrpld` websocket using a client like [xrpl.js](https://github.com/XRPLF/xrpl.js/tree/main).
 
 # Updating
 
@@ -165,12 +180,13 @@ You can now connect to the `rippled` websocket using a client like [xrpl.js](htt
 - **2026-02-23** rippled 3.1.1 [is released](https://github.com/XRPLF/rippled/releases/tag/3.1.1)
 - **2026-03-13** rippled 3.1.2 [is released](https://github.com/XRPLF/rippled/releases/tag/3.1.2)
 - **2026-05-08** rippled 3.1.3 [is released](https://github.com/XRPLF/rippled/releases/tag/3.1.3)
+- **2026-06-16** xrpld 3.2.0 [is released](https://github.com/XRPLF/rippled/releases/tag/3.2.0)
 
 ## Update process
 
-1. Stop the container: `docker stop rippled` (if you named (`--name`) the container `rippled`)
-2. Remove the container: `docker rm rippled`
-3. Remove the image: `docker rmi xrpllabsofficial/xrpld:latest` (or if you built the container image based on the [Github repo](https://github.com/WietseWind/docker-rippled): use the image name you specified when building)
+1. Stop the container: `docker stop xrpld` (if you named (`--name`) the container `xrpld`)
+2. Remove the container: `docker rm xrpld`
+3. Remove the image: `docker rmi xrpllabsofficial/xrpld:latest` (or if you built the container image based on the [Github repo](https://github.com/WietseWind/docker-xrpld): use the image name you specified when building)
 4. Re-create the container; if you used Git: `git pull` and `go/build` - if you used the Docker Hub: just use the command from this Readme (_From the Docker Hub_), a new version of the image will be downloaded.
 
 **USE THE PATHS YOU SPECIFIED (`-v` argument) WHEN RECREATING THE CONTAINER IF YOU WANT TO KEEP YOUR CONFIG AND/OR DATA!**
@@ -178,7 +194,7 @@ You can now connect to the `rippled` websocket using a client like [xrpl.js](htt
 ## Building & publishing to Docker Hub:
 
 ```
-version=3.1.3 # Sample
+version=3.2.0 # Sample
 docker build --platform linux/amd64 --no-cache --tag xrpllabsofficial/xrpld:$version .
 docker push xrpllabsofficial/xrpld:$version
 docker tag xrpllabsofficial/xrpld:$version xrpllabsofficial/xrpld:latest
