@@ -14,14 +14,13 @@ RUN apt-get update -y && \
     mv ripple-key.gpg /usr/local/share/keyrings && \
     echo "deb [signed-by=/usr/local/share/keyrings/ripple-key.gpg] https://repos.ripple.com/repos/rippled-deb noble stable" | tee -a /etc/apt/sources.list.d/ripple.list && \
     apt-get update -y && \
-    apt-get install rippled -y && \
+    apt-get install xrpld -y && \
     rm -rf /var/lib/apt/lists/* && \
-    export PATH=$PATH:/opt/ripple/bin/ && \
     chmod +x /entrypoint.sh && \
     echo '#!/bin/bash' > /usr/bin/server_info && echo '/entrypoint.sh server_info' >> /usr/bin/server_info && \
     chmod +x /usr/bin/server_info
 
-RUN ln -s /opt/ripple/bin/rippled /usr/bin/rippled
+# The xrpld package already installs the binary at /usr/bin/xrpld, no symlink needed.
 
 EXPOSE 80 443 5005 6006 51235
 
