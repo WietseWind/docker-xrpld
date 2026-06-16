@@ -10,20 +10,24 @@ echo "Env:"
 printenv
 echo ""
 
+xrpldconfig=`/bin/cat /config/xrpld.cfg 2>/dev/null | wc -l`
 rippledconfig=`/bin/cat /config/rippled.cfg 2>/dev/null | wc -l`
 validatorstxt=`/bin/cat /config/validators.txt 2>/dev/null | wc -l`
 
 mkdir -p /config
 
-if [[ "$rippledconfig" -gt "0" ]]; then
-    echo "Existing rippled config at host /config/, using."
-    /bin/cat /config/rippled.cfg > /etc/opt/ripple/rippled.cfg
+if [[ "$xrpldconfig" -gt "0" ]]; then
+    echo "Existing xrpld config at host /config/xrpld.cfg, using."
+    /bin/cat /config/xrpld.cfg > /etc/xrpld/xrpld.cfg
+elif [[ "$rippledconfig" -gt "0" ]]; then
+    echo "No /config/xrpld.cfg, but found legacy /config/rippled.cfg, using."
+    /bin/cat /config/rippled.cfg > /etc/xrpld/xrpld.cfg
 fi
 
 if [[ "$validatorstxt" -gt "0" ]]; then
     echo "Existing validator config at host /config/, using."
-    /bin/cat /config/validators.txt > /etc/opt/ripple/validators.txt
+    /bin/cat /config/validators.txt > /etc/xrpld/validators.txt
 fi
 
-# Start rippled, Passthrough other arguments
-exec /opt/ripple/bin/rippled --conf /etc/opt/ripple/rippled.cfg $@$ENV_ARGS
+# Start xrpld, Passthrough other arguments
+exec /usr/bin/xrpld --conf /etc/xrpld/xrpld.cfg $@$ENV_ARGS
