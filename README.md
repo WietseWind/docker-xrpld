@@ -182,6 +182,7 @@ You can now connect to the `xrpld` websocket using a client like [xrpl.js](https
 - **2026-05-08** rippled 3.1.3 [is released](https://github.com/XRPLF/rippled/releases/tag/3.1.3)
 - **2026-06-16** xrpld 3.2.0 [is released](https://github.com/XRPLF/rippled/releases/tag/3.2.0)
 - **2026-07-31** xrpld 3.2.1 [is released](https://github.com/XRPLF/rippled/releases/tag/3.2.1)
+- **2026-08-06** xrpld 3.3.0 [is released](https://github.com/XRPLF/rippled/releases/tag/3.3.0)
 
 ## Update process
 
@@ -195,7 +196,7 @@ You can now connect to the `xrpld` websocket using a client like [xrpl.js](https
 ## Building & publishing to Docker Hub:
 
 ```
-version=3.2.1 # Sample
+version=3.3.0 # Sample
 docker build --platform linux/amd64 --no-cache --tag xrpllabsofficial/xrpld:$version .
 docker push xrpllabsofficial/xrpld:$version
 docker tag xrpllabsofficial/xrpld:$version xrpllabsofficial/xrpld:latest
